@@ -62,6 +62,7 @@
 #include "NetdClient.h"
 #include "NetdConstants.h"
 #include "NetworkController.h"
+#include "RouteController.h"
 #include "SockDiag.h"
 #include "TestUnsolService.h"
 #include "XfrmController.h"
@@ -99,6 +100,8 @@ using android::net::INetd;
 using android::net::InterfaceConfigurationParcel;
 using android::net::InterfaceController;
 using android::net::MarkMaskParcel;
+using android::net::RULE_PRIORITY_SECURE_VPN;
+using android::net::RULE_PRIORITY_VPN_FALLTHROUGH;
 using android::net::SockDiag;
 using android::net::TetherOffloadRuleParcel;
 using android::net::TetherStatsParcel;
@@ -561,8 +564,6 @@ TEST_F(NetdBinderTest, NetworkInterfaces) {
 }
 
 TEST_F(NetdBinderTest, NetworkUidRules) {
-    const uint32_t RULE_PRIORITY_SECURE_VPN = 12000;
-
     EXPECT_TRUE(mNetd->networkCreateVpn(TEST_NETID1, true).isOk());
     EXPECT_EQ(EEXIST, mNetd->networkCreateVpn(TEST_NETID1, true).serviceSpecificErrorCode());
     EXPECT_TRUE(mNetd->networkAddInterface(TEST_NETID1, sTun.name()).isOk());
@@ -3305,8 +3306,6 @@ class ScopedUidChange {
     uid_t mInputUid;
     uid_t mStoredUid;
 };
-
-constexpr uint32_t RULE_PRIORITY_VPN_FALLTHROUGH = 21000;
 
 void clearQueue(int tunFd) {
     char buf[4096];
